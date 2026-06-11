@@ -27,6 +27,10 @@ class PlacesList extends StatelessWidget {
       itemCount: places.length,
       itemBuilder: (ctx, index) => ListTile(
         title: Text(places[index].name),
+        leading: CircleAvatar(
+          radius: 22,
+          backgroundImage: FileImage(places[index].image),
+        ),
         onTap: () => onPlaceTap(context, places[index]),
       ),
     );

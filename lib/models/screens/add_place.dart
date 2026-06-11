@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:fav_places_app/models/place.dart';
+import 'package:fav_places_app/models/widgets/image_input.dart';
 import 'package:flutter/material.dart';
 
 class AddPlaceScreen extends StatefulWidget {
@@ -12,18 +15,20 @@ class AddPlaceScreen extends StatefulWidget {
 
 class _AddPlaceScreenState extends State<AddPlaceScreen> {
   final _titleController = TextEditingController();
+  final _selectedImage = ValueNotifier<File?>(null);
 
   @override
   void dispose() {
     super.dispose();
     _titleController.dispose();
+    _selectedImage.dispose();
   }
 
   void onAddPlace() {
     final title = _titleController.text;
-    if (title.isEmpty) return;
+    if (title.isEmpty || _selectedImage.value == null) return;
 
-    final newPlace = Place(name: title);
+    final newPlace = Place(name: title, image: _selectedImage.value!);
     Navigator.of(context).pop(newPlace);
   }
 
@@ -40,11 +45,21 @@ class _AddPlaceScreenState extends State<AddPlaceScreen> {
               controller: _titleController,
               style: Theme.of(context).textTheme.titleMedium,
             ),
-            const SizedBox(height: 10),
-            ValueListenableBuilder(
-              valueListenable: _titleController,
-              builder: (ctx, value, _) => ElevatedButton.icon(
-                onPressed: value.text.isEmpty ? null : onAddPlace,
+            SizedBox(height: 16),
+            ImageInput(
+              onPickImage: (image) {
+                _selectedImage.value = image;
+              },
+            ),
+            SizedBox(height: 10),
+            ListenableBuilder(
+              listenable: Listenable.merge([_titleController, _selectedImage]),
+              builder: (ctx, _) => ElevatedButton.icon(
+                onPressed:
+                    _titleController.text.isEmpty ||
+                        _selectedImage.value == null
+                    ? null
+                    : onAddPlace,
                 icon: const Icon(Icons.add),
                 label: const Text('Add Place'),
               ),
