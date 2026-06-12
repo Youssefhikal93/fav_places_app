@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart' as syspaths;
 import "package:path/path.dart" as path;
 import "package:sqflite/sqflite.dart" as sql;
-import "package:sqflite/sqlite_api.dart";
 
 class PlacesListScreen extends StatefulWidget {
   const PlacesListScreen({super.key});
@@ -57,7 +56,7 @@ class _PlacesListScreenState extends State<PlacesListScreen> {
         title: const Text('Your Places'),
         actions: [IconButton(onPressed: onPress, icon: const Icon(Icons.add))],
       ),
-      body: PlacesList(places: places),
+      body: PlacesList(places: places, onRemovePlace: removePlace),
     );
   }
 
@@ -106,5 +105,24 @@ class _PlacesListScreenState extends State<PlacesListScreen> {
           ),
         )
         .toList();
+  }
+
+  void deletePlace(String id) async {
+    final db = await getDatabase();
+    await db.delete('user_places', where: 'id = ?', whereArgs: [id]);
+  }
+
+  void removePlace(Place place) async {
+    setState(() {
+      places.remove(place);
+    });
+    deletePlace(place.id);
+
+    // Clean up the image copy stored in the app documents directory.
+    try {
+      await place.image.delete();
+    } catch (_) {
+      // The file may already be gone; nothing else to do.
+    }
   }
 }
